@@ -29,17 +29,30 @@
         <div class="playlist-wrap">
           <table class="songlist" id="tableId">
             <nav class="listbody">
-              <li v-for="(fact, index) in songList" :key="index">
-                {{ fact.title }}, {{ fact.artist }}
+              <li v-for="(fact, index) in songList" :key="index"> <a href="#" @click="skipTo(index)">
+                  {{ fact.title }}, {{ fact.artist }} </a>
                 <!-- pode por o click dentro da tag a pra mudar de musica @click="getImage()" -->
               </li>
             </nav>
           </table>
         </div>
-        <div class="audioplayer">
-          <audio-player ref="audioPlayer" :audio-list="songList.map(elm => elm.songUrl)" :before-play="handleBeforePlay"
-            theme-color="#46c4a4" />
+
+        <div class="audio-wrapper">
+          <div class="audioplayer">
+            <audio controls id="audioplayer" autoplay>
+              <source v-if="currentUrl != ''" :src="currentUrl">
+            </audio>
+          </div>
+          <div class="audio-buttons">
+            <button class="audio-bt" id="close-image" @click="playPrev" type="button">
+              <img src="@/assets/prev-track-grey.png" />
+            </button>
+            <button class="audio-bt" id="close-image" @click="playNext" type="button">
+              <img src="@/assets/next-track-grey.png" />
+            </button>
+          </div>
         </div>
+
       </div>
     </div>
     <div class="searchform">
@@ -90,7 +103,6 @@
 </template>
   
 <script lang="ts">
-import AudioPlayer from '@liripeng/vue-audio-player'
 import { defineComponent, nextTick } from 'vue';
 import axios from 'axios';
 
@@ -126,6 +138,7 @@ export default defineComponent({
       searchByAlbum: false,
       currentAudioName: '',
       currentUrl: '',
+      currentPlayIndex: 0,
       image: '',
       album: '',
       artist: '',
@@ -147,27 +160,47 @@ export default defineComponent({
       inpFavArt: "",
       inpFavGen: "",
       favorCk: false,
-      songToPLay: 0
+      songToPLay: 0,
+      setupListeners: false,
+      isPlaying: false,
     }
   },
   beforeMount() {
     this.fetchGenre()
   },
   methods: {
-    // Something to do before playing
-    handleBeforePlay(next) {
-      console.log('handlebeforeplay');
-      this.currentAudioName = this.songList[this.$refs.audioPlayer.currentPlayIndex].title
-      this.currentUrl = this.songList[this.$refs.audioPlayer.currentPlayIndex].songUrl
-      this.image = this.songList[this.$refs.audioPlayer.currentPlayIndex].albumArtUri;
-      this.album = this.songList[this.$refs.audioPlayer.currentPlayIndex].album;
-      this.artist = this.songList[this.$refs.audioPlayer.currentPlayIndex].artist;
-      this.genre = this.songList[this.$refs.audioPlayer.currentPlayIndex].genre;
-      this.id = this.songList[this.$refs.audioPlayer.currentPlayIndex].id;
-      this.favorite = this.songList[this.$refs.audioPlayer.currentPlayIndex].favorite;
-      this.albumDate = this.songList[this.$refs.audioPlayer.currentPlayIndex].albumDate;
+    playNext() {
+      this.currentPlayIndex = this.currentPlayIndex + 1;
+      this.skipTo(this.currentPlayIndex);
+      const audio = document.getElementById("audioplayer") as HTMLAudioElement
+      audio.src = this.songList[this.currentPlayIndex].songUrl;
+      this.isPlaying = true
+    },
+    skipTo(index) {
+      console.log('skipto');
+      console.log('index:', index);
 
-      next() // Start playing
+      if (this.isPlaying) {
+        const audio = document.getElementById("audioplayer") as HTMLAudioElement
+        audio.src = this.songList[index].songUrl;
+      }
+      this.currentAudioName = this.songList[index].title
+      this.currentUrl = this.songList[index].songUrl
+      this.currentPlayIndex = index;
+
+      this.image = this.songList[index].albumArtUri;
+      this.album = this.songList[index].album;
+      this.artist = this.songList[index].artist;
+      this.genre = this.songList[index].genre;
+      this.id = this.songList[index].id;
+      this.favorite = this.songList[index].favorite;
+      this.albumDate = this.songList[index].albumDate;
+    },
+    playPrev() {
+      this.currentPlayIndex = this.currentPlayIndex - 1;
+      this.skipTo(this.currentPlayIndex);
+      const audio = document.getElementById("audioplayer") as HTMLAudioElement
+      audio.src = this.songList[this.currentPlayIndex].songUrl;
     },
     async fetchSongs(searchWord) {
       this.sw = this.apiUrl + '/songs/' + searchWord + "?limit=" + this.limitSongs + "&gethide=false"
@@ -219,10 +252,16 @@ export default defineComponent({
         this.fetchSongsByAlbum(this.selectedAlbum.Name)
         this.selectedAlbum = '';
       }
+      if (!this.once) {
+        this.once = true
+        console.log('addevente-added');
 
+        const audio = document.getElementById("audioplayer") as HTMLAudioElement
+        audio.addEventListener("ended", this.playNext)
+      }
     },
     async favClick() {
-      this.sw = this.apiUrl + '/songs/favorite?id=' + this.songList[this.$refs.audioPlayer.currentPlayIndex].id
+      this.sw = this.apiUrl + '/songs/favorite?id=' + this.songList[this.currentPlayIndex].id
       this.favorite = !this.favorite
       const res = await axios.put(this.sw)
     },
@@ -240,9 +279,6 @@ export default defineComponent({
         this.songList = this.songList.concat(this.songList1)
       }
     }
-  },
-  components: {
-    AudioPlayer
   },
   watch: {
     selectedGenre: function (val, oldVal) {
@@ -264,10 +300,6 @@ export default defineComponent({
 }
 
 .searchform {
-  padding-top: 10px;
-}
-
-.audioplayer {
   padding-top: 10px;
 }
 
@@ -339,5 +371,39 @@ fieldset {
 
 .w-full {
   color: white;
+}
+
+.audio-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.audio-buttons {
+  border-radius: 30px;
+  margin-top: 10px;
+  background-color: white;
+  width: 65%;
+  height: 75%;
+}
+
+.audioplayer {
+  padding-top: 10px;
+  justify-items: left;
+}
+
+.audio-bt {
+  border: 0px;
+  padding: 0;
+  margin: 10px;
+  vertical-align: top;
+  width: 10%;
+  height: 75%;
+}
+
+#close-image img {
+  display: block;
+  padding: 2px;
+  height: 30px;
+  width: 30px;
 }
 </style>
