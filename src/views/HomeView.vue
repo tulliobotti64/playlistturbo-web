@@ -101,7 +101,7 @@
     </div>
   </div>
 </template>
-  
+
 <script lang="ts">
 import { defineComponent, nextTick } from 'vue';
 import axios from 'axios';
@@ -204,12 +204,22 @@ export default defineComponent({
     },
     async fetchSongs(searchWord) {
       this.sw = this.apiUrl + '/songs/' + searchWord + "?limit=" + this.limitSongs + "&gethide=false"
-      const songsResponse = await axios.get<SongList[]>(this.sw);
-      if (this.clearPl) {
-        this.songList = songsResponse.data
-      } else {
-        this.songList1 = songsResponse.data
-        this.songList = this.songList.concat(this.songList1)
+      try {
+        const songsResponse = await axios.get<SongList[]>(this.sw);
+        if (songsResponse.data == null) {
+          alert("No result for this selection!")
+        } else {
+
+          if (this.clearPl) {
+            this.songList = songsResponse.data
+          } else {
+            this.songList1 = songsResponse.data
+            this.songList = this.songList.concat(this.songList1)
+          }
+        }
+      } catch (err) {
+        console.log(err);
+        alert("Error fetchSongs, see log")
       }
     },
     async fetchGenre() {
