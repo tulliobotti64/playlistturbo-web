@@ -22,7 +22,8 @@
           </div>
           <div v-if="currentAudioName != ''">
             <div @click="hideClick()">
-              <img src="../assets/hide.png" width="30" height="30">
+              Hide:
+              <img src="../assets/hide-x.png" width="30" height="30">
             </div>
           </div>
         </div>
