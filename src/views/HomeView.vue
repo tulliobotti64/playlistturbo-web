@@ -9,7 +9,7 @@
           Title: {{ currentAudioName }} <p></p>
           Album: {{ album }} <p></p>
           Year: {{ albumDate }} <p></p>
-
+          Music number: {{ indexCnt }} / {{ listLen }}
           <div @click="favClick()">
             <div v-if="favorite && currentAudioName != ''">
               Favorite:
@@ -18,6 +18,11 @@
             <div v-if="!favorite && currentAudioName != ''">
               Favorite:
               <img src="../assets/star-g.jpg" width="30" height="30">
+            </div>
+          </div>
+          <div v-if="currentAudioName != ''">
+            <div @click="hideClick()">
+              <img src="../assets/hide.png" width="30" height="30">
             </div>
           </div>
         </div>
@@ -163,6 +168,8 @@ export default defineComponent({
       songToPLay: 0,
       setupListeners: false,
       isPlaying: false,
+      indexCnt: 0,
+      listLen: 0
     }
   },
   beforeMount() {
@@ -177,9 +184,6 @@ export default defineComponent({
       this.isPlaying = true
     },
     skipTo(index) {
-      console.log('skipto');
-      console.log('index:', index);
-
       if (this.isPlaying) {
         const audio = document.getElementById("audioplayer") as HTMLAudioElement
         audio.src = this.songList[index].songUrl;
@@ -195,6 +199,7 @@ export default defineComponent({
       this.id = this.songList[index].id;
       this.favorite = this.songList[index].favorite;
       this.albumDate = this.songList[index].albumDate;
+      this.indexCnt = index + 1;
     },
     playPrev() {
       this.currentPlayIndex = this.currentPlayIndex - 1;
@@ -216,6 +221,7 @@ export default defineComponent({
             this.songList1 = songsResponse.data
             this.songList = this.songList.concat(this.songList1)
           }
+          this.listLen += this.songList.length
         }
       } catch (err) {
         console.log(err);
@@ -275,6 +281,19 @@ export default defineComponent({
       this.favorite = !this.favorite
       const res = await axios.put(this.sw)
     },
+    async hideClick() {
+      try {
+        this.sw = this.apiUrl + '/songs/hide/' + this.songList[this.currentPlayIndex].id
+        const res = await axios.put(this.sw)
+        this.songList.splice(this.currentPlayIndex, 1)
+        this.currentPlayIndex = this.currentPlayIndex - 1
+        this.listLen = this.listLen - 1
+        this.playNext()
+      } catch (err) {
+        console.log(err);
+        alert("Error hiding song!")
+      }
+    },
     async getFavorites(genre, artist) {
       this.sw = this.apiUrl + '/songs/favorites'
       const myBody = { genre: this.inpFavGen, artist: this.inpFavArt }
@@ -299,7 +318,7 @@ export default defineComponent({
     },
     selectedAlbum: function (val, oldVal) {
       this.searchByAlbum = true;
-    }
+    },
   }
 })
 </script>
