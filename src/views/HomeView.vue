@@ -222,7 +222,7 @@ export default defineComponent({
             this.songList1 = songsResponse.data
             this.songList = this.songList.concat(this.songList1)
           }
-          this.listLen += this.songList.length
+          this.listLen = this.songList.length
         }
       } catch (err) {
         console.log(err);
