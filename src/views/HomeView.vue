@@ -10,33 +10,38 @@
           Album: {{ album }} <p></p>
           Year: {{ albumDate }} <p></p>
           Music number: {{ indexCnt }} / {{ listLen }}
-          <div @click="favClick()">
-            <div v-if="favorite && currentAudioName != ''">
-              Favorite:
-              <img src="../assets/star-icon.jpg" width="30" height="30">
+          <div class="btn-fh">
+            <div @click="favClick()">
+              <div v-if="favorite && currentAudioName != ''">
+                Favorite:
+                <img src="../assets/star-icon.jpg" width="30" height="30">
+              </div>
+              <div v-if="!favorite && currentAudioName != ''">
+                Favorite:
+                <img src="../assets/star-g.jpg" width="30" height="30">
+              </div>
             </div>
-            <div v-if="!favorite && currentAudioName != ''">
-              Favorite:
-              <img src="../assets/star-g.jpg" width="30" height="30">
-            </div>
-          </div>
-          <div v-if="currentAudioName != ''">
-            <div @click="hideClick()">
-              Hide:
-              <img src="../assets/hide-x.png" width="30" height="30">
+            <div v-if="currentAudioName != ''">
+              <div @click="hideClick()">
+                Hide:
+                <img src="../assets/hide-x.png" width="30" height="30">
+              </div>
             </div>
           </div>
         </div>
       </div>
       <div class="columntop-middle">
-        <p></p>
+        <p>\$(alert)</p>
       </div>
       <div class="column-right">
         <div class="playlist-wrap">
           <table class="songlist" id="tableId">
             <nav class="listbody">
-              <li v-for="(fact, index) in songList" :key="index"> <a href="#" @click="skipTo(index)">
-                  {{ fact.title }}, {{ fact.artist }} </a>
+              <li class="liclass" v-for="(fact, index) in songList" :key="index"> <a href="#" @click="skipTo(index)">
+                  {{ index + 1 }} - {{ fact.title }}, {{ fact.artist }}</a>
+                <div v-if="fact.favorite">
+                  <img class="starfav" src="../assets/tbstar.svg" width="20" height="20">
+                </div>
                 <!-- pode por o click dentro da tag a pra mudar de musica @click="getImage()" -->
               </li>
             </nav>
@@ -325,6 +330,26 @@ export default defineComponent({
 </script>
 
 <style>
+li {
+  border: 1px solid rgb(58, 57, 57);
+  display: grid;
+  grid-template-columns: 90% 10%;
+  gap: 10px;
+}
+
+.liclass {
+  margin-left: 5px;
+}
+
+.btn-fh {
+  margin-top: 10px;
+  width: 150px;
+  padding-left: 5px;
+  border: 2px solid rgb(135, 136, 135);
+  display: flex;
+  align-items: center;
+}
+
 .limitsong {
   width: 50px;
 }
@@ -333,19 +358,20 @@ export default defineComponent({
   padding-top: 10px;
 }
 
+.starfav {
+  margin-top: 5px;
+}
+
 .songlist {
   border: 1px solid white;
   border-collapse: collapse;
 }
 
-.playlist-wrap {
-  background-color: #222;
-}
-
-.playlist-wrap li {
-  margin: 0 0 0 3em;
-  padding: .25em 0 .25em .5em;
-  list-style: decimal outside;
+table,
+th,
+td {
+  border: 1px solid black;
+  border-collapse: collapse;
 }
 
 .playlist-wrap li.sel {
@@ -369,7 +395,6 @@ export default defineComponent({
 }
 
 .columntop-middle {
-  flex: 10%;
   padding-left: 40px;
 }
 

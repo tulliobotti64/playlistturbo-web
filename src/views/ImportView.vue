@@ -19,6 +19,12 @@
       <input type="radio" id="flac" value="flac" v-model="inputExtension" />
       <label for="flac">flac</label>
       <p></p>
+      <input type="radio" id="folder" value="folder" v-model="inputGenreArtistAlbum" />
+      <label for="folder">folder</label>
+
+      <input type="radio" id="mp3tag" value="mp3tag" v-model="inputGenreArtistAlbum" />
+      <label for="mp3tag">mp3tag</label>
+      <p></p>
       <button type="submit">Submit</button>
       <div v-if="isLoading">
         <div class="spinner-grow" role="status">
@@ -55,6 +61,7 @@ export default defineComponent({
       inputRecursive: false,
       inputGenre: false,
       inputExtension: 'mp3',
+      inputGenreArtistAlbum: 'folder',
       imported: Object as unknown as ImportedResult,
       showImpResult: false,
       isLoading: false
@@ -65,7 +72,7 @@ export default defineComponent({
       if (this.inputPath === '') {
         alert('Folder path must be informed');
       }
-      const impBody = { path: this.inputPath, recursive: this.inputRecursive, songExtension: this.inputExtension, genreFromPath: this.inputGenre }
+      const impBody = { path: this.inputPath, recursive: this.inputRecursive, songExtension: this.inputExtension, genreFromPath: this.inputGenre, genreArtistAlbum: this.inputGenreArtistAlbum }
       const impBodyString = JSON.stringify(impBody)
 
       this.sw = this.apiUrl + '/songs/import'
