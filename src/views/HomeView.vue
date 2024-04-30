@@ -31,7 +31,7 @@
         </div>
       </div>
       <div class="columntop-middle">
-        <p>\$(alert)</p>
+        <p></p>
       </div>
       <div class="column-right">
         <div class="playlist-wrap">
@@ -40,7 +40,7 @@
               <li class="liclass" v-for="(fact, index) in songList" :key="index"> <a href="#" @click="skipTo(index)">
                   {{ index + 1 }} - {{ fact.title }}, {{ fact.artist }}</a>
                 <div v-if="fact.favorite">
-                  <img class="starfav" src="../assets/tbstar.svg" width="20" height="20">
+                  <img class="starfav" src="../assets/red-star.jpeg" width="20" height="20">
                 </div>
                 <!-- pode por o click dentro da tag a pra mudar de musica @click="getImage()" -->
               </li>
@@ -259,6 +259,7 @@ export default defineComponent({
           this.songList1 = albumResponse.data
           this.songList = this.songList.concat(this.songList1)
         }
+        this.listLen = this.songList.length
       }
     },
     registerAnswer() {
