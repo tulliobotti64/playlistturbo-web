@@ -61,6 +61,9 @@
             <button class="audio-bt" id="close-image" @click="playNext" type="button">
               <img src="@/assets/next-track-grey.png" />
             </button>
+            <button v-if="listLen > 0" class="audio-bt" id="close-image" @click="shufList" type="button">
+              <img src="@/assets/shuffle-icon.png" />
+            </button>
           </div>
         </div>
 
@@ -314,6 +317,14 @@ export default defineComponent({
         this.songList1 = songsResponse.data
         this.songList = this.songList.concat(this.songList1)
       }
+    },
+    shufList() {
+      let array = this.songList
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      this.songList = array;
     }
   },
   watch: {
