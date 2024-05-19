@@ -14,17 +14,17 @@
             <div @click="favClick()">
               <div v-if="favorite && currentAudioName != ''">
                 Favorite:
-                <img src="../assets/star-icon.jpg" width="30" height="30">
+                <img src="@/assets/star-icon.jpg" width="30" height="30">
               </div>
               <div v-if="!favorite && currentAudioName != ''">
                 Favorite:
-                <img src="../assets/star-g.jpg" width="30" height="30">
+                <img src="@/assets/star-g.jpg" width="30" height="30">
               </div>
             </div>
             <div v-if="currentAudioName != ''">
               <div @click="hideClick()">
                 Hide:
-                <img src="../assets/hide-x.png" width="30" height="30">
+                <img src="@/assets/hide-x.png" width="30" height="30">
               </div>
             </div>
           </div>
@@ -40,7 +40,7 @@
               <li class="liclass" v-for="(fact, index) in songList" :key="index"> <a href="#" @click="skipTo(index)">
                   {{ index + 1 }} - {{ fact.title }}, {{ fact.artist }}</a>
                 <div v-if="fact.favorite">
-                  <img class="starfav" src="../assets/red-star.jpeg" width="20" height="20">
+                  <img class="starfav" src="@/assets/red-star.jpeg" width="20" height="20">
                 </div>
                 <!-- pode por o click dentro da tag a pra mudar de musica @click="getImage()" -->
               </li>
@@ -63,6 +63,9 @@
             </button>
             <button v-if="listLen > 0" class="audio-bt" id="close-image" @click="shufList" type="button">
               <img src="@/assets/shuffle-icon.png" />
+            </button>
+            <button v-if="listLen > 0" class="audio-bt" id="close-image" @click="removeList" type="button">
+              <img src="@/assets/trash.png" />
             </button>
           </div>
         </div>
@@ -117,7 +120,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, nextTick } from 'vue';
+import { defineComponent, nextTick, ref } from 'vue';
 import axios from 'axios';
 
 interface SongList {
@@ -145,6 +148,7 @@ export default defineComponent({
   name: 'SongList',
   data() {
     return {
+      myData: ref([]),
       apiUrl: 'http://192.168.32.136:8080/api',
       songList: [] as SongList[],
       songList1: [] as SongList[],
@@ -182,9 +186,31 @@ export default defineComponent({
     }
   },
   beforeMount() {
+    console.log("entrou no before");
     this.fetchGenre()
   },
+  mounted() {
+    this.getStorage()
+  },
   methods: {
+    removeList() {
+      localStorage.removeItem('myList')
+      this.songList = []
+      this.listLen = 0
+    },
+    saveStorage() {
+      localStorage.setItem('myList', JSON.stringify(this.songList));
+      this.listLen = this.songList.length
+    },
+    getStorage() {
+      console.log("entrou no getstorage");
+
+      if (localStorage.getItem('myList')) {
+        console.log("tem dados");
+        this.songList = JSON.parse(localStorage.getItem('myList') as any)
+        this.listLen = this.songList.length
+      }
+    },
     playNext() {
       this.currentPlayIndex = this.currentPlayIndex + 1;
       this.skipTo(this.currentPlayIndex);
@@ -229,6 +255,7 @@ export default defineComponent({
           } else {
             this.songList1 = songsResponse.data
             this.songList = this.songList.concat(this.songList1)
+            this.saveStorage()
           }
           this.listLen = this.songList.length
         }
@@ -261,6 +288,7 @@ export default defineComponent({
         } else {
           this.songList1 = albumResponse.data
           this.songList = this.songList.concat(this.songList1)
+          this.saveStorage()
         }
         this.listLen = this.songList.length
       }
