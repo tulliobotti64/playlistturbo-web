@@ -180,13 +180,11 @@ export default defineComponent({
       favorCk: false,
       songToPLay: 0,
       setupListeners: false,
-      isPlaying: false,
       indexCnt: 0,
       listLen: 0
     }
   },
   beforeMount() {
-    console.log("entrou no before");
     this.fetchGenre()
   },
   mounted() {
@@ -197,36 +195,38 @@ export default defineComponent({
       localStorage.removeItem('myList')
       this.songList = []
       this.listLen = 0
+      this.image = ''
+      this.album = ''
+      this.artist = ''
+      this.genre = ''
+      this.albumDate = 0
+      this.currentAudioName = ''
+      this.indexCnt = 0
+      const audio = document.getElementById("audioplayer") as HTMLAudioElement
+      audio.src = ''
     },
     saveStorage() {
       localStorage.setItem('myList', JSON.stringify(this.songList));
       this.listLen = this.songList.length
     },
     getStorage() {
-      console.log("entrou no getstorage");
-
       if (localStorage.getItem('myList')) {
-        console.log("tem dados");
         this.songList = JSON.parse(localStorage.getItem('myList') as any)
         this.listLen = this.songList.length
       }
+      const audio = document.getElementById("audioplayer") as HTMLAudioElement
+      audio.addEventListener("ended", this.playNext)
     },
     playNext() {
       this.currentPlayIndex = this.currentPlayIndex + 1;
       this.skipTo(this.currentPlayIndex);
-      const audio = document.getElementById("audioplayer") as HTMLAudioElement
-      audio.src = this.songList[this.currentPlayIndex].songUrl;
-      this.isPlaying = true
     },
     skipTo(index) {
-      if (this.isPlaying) {
-        const audio = document.getElementById("audioplayer") as HTMLAudioElement
-        audio.src = this.songList[index].songUrl;
-      }
+      this.currentPlayIndex = index;
+      const audio = document.getElementById("audioplayer") as HTMLAudioElement
+      audio.src = this.songList[this.currentPlayIndex].songUrl;
       this.currentAudioName = this.songList[index].title
       this.currentUrl = this.songList[index].songUrl
-      this.currentPlayIndex = index;
-
       this.image = this.songList[index].albumArtUri;
       this.album = this.songList[index].album;
       this.artist = this.songList[index].artist;
@@ -239,8 +239,6 @@ export default defineComponent({
     playPrev() {
       this.currentPlayIndex = this.currentPlayIndex - 1;
       this.skipTo(this.currentPlayIndex);
-      const audio = document.getElementById("audioplayer") as HTMLAudioElement
-      audio.src = this.songList[this.currentPlayIndex].songUrl;
     },
     async fetchSongs(searchWord) {
       this.sw = this.apiUrl + '/songs/' + searchWord + "?limit=" + this.limitSongs + "&gethide=false"
@@ -255,9 +253,8 @@ export default defineComponent({
           } else {
             this.songList1 = songsResponse.data
             this.songList = this.songList.concat(this.songList1)
-            this.saveStorage()
           }
-          this.listLen = this.songList.length
+          this.saveStorage()
         }
       } catch (err) {
         console.log(err);
@@ -305,13 +302,6 @@ export default defineComponent({
         this.searchByAlbum = false
         this.fetchSongsByAlbum(this.selectedAlbum.Name)
         this.selectedAlbum = '';
-      }
-      if (!this.once) {
-        this.once = true
-        console.log('addevente-added');
-
-        const audio = document.getElementById("audioplayer") as HTMLAudioElement
-        audio.addEventListener("ended", this.playNext)
       }
     },
     async favClick() {
