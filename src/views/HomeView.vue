@@ -42,7 +42,6 @@
                 <div v-if="fact.favorite">
                   <img class="starfav" src="@/assets/red-star.jpeg" width="20" height="20">
                 </div>
-                <!-- pode por o click dentro da tag a pra mudar de musica @click="getImage()" -->
               </li>
             </nav>
           </table>
@@ -55,16 +54,18 @@
             </audio>
           </div>
           <div class="audio-buttons">
-            <button class="audio-bt" id="close-image" @click="playPrev" type="button">
+            <button class="audio-bt" id="close-image" title="Previous track" @click="playPrev" type="button">
               <img src="@/assets/prev-track-grey.png" />
             </button>
-            <button class="audio-bt" id="close-image" @click="playNext" type="button">
+            <button class="audio-bt" id="close-image" title="Next track" @click="playNext" type="button">
               <img src="@/assets/next-track-grey.png" />
             </button>
-            <button v-if="listLen > 0" class="audio-bt" id="close-image" @click="shufList" type="button">
+            <button v-if="listLen > 0" class="audio-bt" id="close-image" title="Shuffle list" @click="shufList"
+              type="button">
               <img src="@/assets/shuffle-icon.png" />
             </button>
-            <button v-if="listLen > 0" class="audio-bt" id="close-image" @click="removeList" type="button">
+            <button v-if="listLen > 0" class="audio-bt" id="close-image" title="Clear list" @click="removeList"
+              type="button">
               <img src="@/assets/trash.png" />
             </button>
           </div>
@@ -213,6 +214,10 @@ export default defineComponent({
       if (localStorage.getItem('myList')) {
         this.songList = JSON.parse(localStorage.getItem('myList') as any)
         this.listLen = this.songList.length
+        this.currentPlayIndex = JSON.parse(localStorage.getItem('myIndex') as any)
+        console.log("index:", this.currentPlayIndex);
+
+        this.loadSongInfo(this.currentPlayIndex)
       }
       const audio = document.getElementById("audioplayer") as HTMLAudioElement
       audio.addEventListener("ended", this.playNext)
@@ -225,6 +230,9 @@ export default defineComponent({
       this.currentPlayIndex = index;
       const audio = document.getElementById("audioplayer") as HTMLAudioElement
       audio.src = this.songList[this.currentPlayIndex].songUrl;
+      this.loadSongInfo(index)
+    },
+    loadSongInfo(index) {
       this.currentAudioName = this.songList[index].title
       this.currentUrl = this.songList[index].songUrl
       this.image = this.songList[index].albumArtUri;
@@ -235,6 +243,7 @@ export default defineComponent({
       this.favorite = this.songList[index].favorite;
       this.albumDate = this.songList[index].albumDate;
       this.indexCnt = index + 1;
+      localStorage.setItem('myIndex', JSON.stringify(this.currentPlayIndex));
     },
     playPrev() {
       this.currentPlayIndex = this.currentPlayIndex - 1;
@@ -483,6 +492,11 @@ fieldset {
   vertical-align: top;
   width: 10%;
   height: 75%;
+}
+
+.audio-bt:hover {
+  border: 1px solid #888;
+  background-color: #ddd;
 }
 
 #close-image img {
