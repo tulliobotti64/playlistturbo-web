@@ -78,11 +78,22 @@
         <fieldset>
           <legend>Search options:</legend>
           <div>
-            <p>Enter title to search music:
+            <p>Search by:
+              <input type="radio" id="Artist" name="search_by" value="artist" v-model="search_by">
+              <label for="artist">Artist</label>
+              <input type="radio" id="Album" name="search_by" value="album" v-model="search_by">
+              <label for="album">Album</label>
+              <input type="radio" id="Title" name="search_by" value="title" v-model="search_by">
+              <label for="title">Title</label>
               <label>
                 <input type="text" name="nameSearch" v-model="inpVal">
               </label>
-              <button type="submit">Submit</button>
+              <input v-if="search_by == 'artist'" type="radio" id="Random" name="search_op" value="random"
+                v-model="search_op">
+              <label v-if="search_by == 'artist'" for="css">Random</label>
+              <input v-if="search_by == 'artist'" type="radio" id="Sequential" name="search_op" value="sequential"
+                v-model="search_op">
+              <label v-if="search_by == 'artist'" for="javascript">Sequential</label>
             </p>
           </div>
           <p>Clear playlist on submit
@@ -99,6 +110,7 @@
             Artist:
             <input type="text" name="favGenre" v-model="inpFavArt">
           </p>
+          <button type="submit">Submit</button>
 
           <div class="row">
             <div class="column">
@@ -182,7 +194,9 @@ export default defineComponent({
       songToPLay: 0,
       setupListeners: false,
       indexCnt: 0,
-      listLen: 0
+      listLen: 0,
+      search_by: 'artist',
+      search_op: 'random'
     }
   },
   beforeMount() {
@@ -209,14 +223,13 @@ export default defineComponent({
     saveStorage() {
       localStorage.setItem('myList', JSON.stringify(this.songList));
       this.listLen = this.songList.length
+      localStorage.setItem('myIndex', JSON.stringify(this.currentPlayIndex));
     },
     getStorage() {
       if (localStorage.getItem('myList')) {
         this.songList = JSON.parse(localStorage.getItem('myList') as any)
         this.listLen = this.songList.length
         this.currentPlayIndex = JSON.parse(localStorage.getItem('myIndex') as any)
-        console.log("index:", this.currentPlayIndex);
-
         this.loadSongInfo(this.currentPlayIndex)
       }
       const audio = document.getElementById("audioplayer") as HTMLAudioElement
@@ -256,7 +269,6 @@ export default defineComponent({
         if (songsResponse.data == null) {
           alert("No result for this selection!")
         } else {
-
           if (this.clearPl) {
             this.songList = songsResponse.data
           } else {
@@ -294,15 +306,36 @@ export default defineComponent({
         } else {
           this.songList1 = albumResponse.data
           this.songList = this.songList.concat(this.songList1)
-          this.saveStorage()
         }
-        this.listLen = this.songList.length
+        this.saveStorage()
       }
+    },
+    async fetchSongsByArtist(artist, option) {
+      this.sw = this.apiUrl + '/songs/songsbyartist/' + artist + "?option=" + option + "&limit=" + this.limitSongs
+      const artistResponse = await axios.get<AlbumList[]>(this.sw);
+      if (this.clearPl) {
+        this.songList = artistResponse.data
+      } else {
+        this.songList1 = artistResponse.data
+        this.songList = this.songList.concat(this.songList1)
+      }
+      this.saveStorage()
     },
     registerAnswer() {
       if (this.favorCk) {
         this.getFavorites(this.inpFavGen, this.inpFavArt)
       }
+
+      if (this.inpVal && this.search_by == "album") {
+        this.fetchSongsByAlbum(this.inpVal)
+        return
+      }
+
+      if (this.inpVal && this.search_by == "artist") {
+        this.fetchSongsByArtist(this.inpVal, this.search_op)
+        return
+      }
+
       if (this.inpVal) {
         this.inpValSubmitted = this.inpVal;
         this.inpVal = '';
