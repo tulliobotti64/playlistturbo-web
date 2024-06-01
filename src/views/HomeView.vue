@@ -108,7 +108,7 @@
             Genre:
             <input type="text" name="favGenre" v-model="inpFavGen">
             Artist:
-            <input type="text" name="favGenre" v-model="inpFavArt">
+            <input type="text" name="favArtist" v-model="inpFavArt">
           </p>
           <button type="submit">Submit</button>
 
@@ -234,16 +234,24 @@ export default defineComponent({
       }
       const audio = document.getElementById("audioplayer") as HTMLAudioElement
       audio.addEventListener("ended", this.playNext)
+
+      audio.onerror = function () {
+        alert("**Can't open audio ! Verify lan connection.")
+      }
+
     },
     playNext() {
       this.currentPlayIndex = this.currentPlayIndex + 1;
       this.skipTo(this.currentPlayIndex);
     },
+
     skipTo(index) {
       this.currentPlayIndex = index;
+
       const audio = document.getElementById("audioplayer") as HTMLAudioElement
       audio.src = this.songList[this.currentPlayIndex].songUrl;
       this.loadSongInfo(index)
+
     },
     loadSongInfo(index) {
       this.currentAudioName = this.songList[index].title
@@ -284,42 +292,67 @@ export default defineComponent({
     },
     async fetchGenre() {
       this.sw = this.apiUrl + '/songs/genres'
-      const genreResponse = await axios.get<GenreList[]>(this.sw);
-      this.genreList = genreResponse.data
+      try {
+        const genreResponse = await axios.get<GenreList[]>(this.sw);
+        this.genreList = genreResponse.data
+      } catch (err) {
+        console.log(err);
+        alert("Error reading genres.")
+      }
     },
     async fetchArtist(genre) {
       this.sw = this.apiUrl + '/songs/artistbygenre/' + genre
-      const artistResponse = await axios.get<ArtistList[]>(this.sw);
-      this.artistList = artistResponse.data
+      try {
+        const artistResponse = await axios.get<ArtistList[]>(this.sw);
+        this.artistList = artistResponse.data
+      } catch (err) {
+        console.log(err);
+        alert("Error reading artists.")
+      }
     },
     async fetchAlbum(artist) {
-      this.sw = this.apiUrl + '/songs/albumbyartist/' + artist
-      const albumResponse = await axios.get<AlbumList[]>(this.sw);
-      this.albumList = albumResponse.data
+      try {
+        this.sw = this.apiUrl + '/songs/albumbyartist/' + artist
+        const albumResponse = await axios.get<AlbumList[]>(this.sw);
+        this.albumList = albumResponse.data
+      } catch (err) {
+        console.log(err);
+        alert("Error reading albums.")
+      }
     },
     async fetchSongsByAlbum(album) {
       if (album != undefined) {
-        this.sw = this.apiUrl + '/songs/songsbyalbum/' + album + "?limit=" + this.limitSongs
-        const albumResponse = await axios.get<AlbumList[]>(this.sw);
-        if (this.clearPl) {
-          this.songList = albumResponse.data
-        } else {
-          this.songList1 = albumResponse.data
-          this.songList = this.songList.concat(this.songList1)
+        try {
+          this.sw = this.apiUrl + '/songs/songsbyalbum/' + album + "?limit=" + this.limitSongs
+          const albumResponse = await axios.get<AlbumList[]>(this.sw);
+          if (this.clearPl) {
+            this.songList = albumResponse.data
+          } else {
+            this.songList1 = albumResponse.data
+            this.songList = this.songList.concat(this.songList1)
+          }
+          this.saveStorage()
+        } catch (err) {
+          console.log(err);
+          alert("Error reading songs by albums.")
         }
-        this.saveStorage()
       }
     },
     async fetchSongsByArtist(artist, option) {
       this.sw = this.apiUrl + '/songs/songsbyartist/' + artist + "?option=" + option + "&limit=" + this.limitSongs
-      const artistResponse = await axios.get<AlbumList[]>(this.sw);
-      if (this.clearPl) {
-        this.songList = artistResponse.data
-      } else {
-        this.songList1 = artistResponse.data
-        this.songList = this.songList.concat(this.songList1)
+      try {
+        const artistResponse = await axios.get<AlbumList[]>(this.sw);
+        if (this.clearPl) {
+          this.songList = artistResponse.data
+        } else {
+          this.songList1 = artistResponse.data
+          this.songList = this.songList.concat(this.songList1)
+        }
+        this.saveStorage()
+      } catch (err) {
+        console.log(err);
+        alert("Error reading songs by artists.")
       }
-      this.saveStorage()
     },
     registerAnswer() {
       if (this.favorCk) {
@@ -347,13 +380,23 @@ export default defineComponent({
       }
     },
     async favClick() {
-      this.sw = this.apiUrl + '/songs/favorite?id=' + this.songList[this.currentPlayIndex].id
-      this.favorite = !this.favorite
-      const res = await axios.put(this.sw)
+      try {
+        this.sw = this.apiUrl + '/songs/favorite?id=' + this.songList[this.currentPlayIndex].id
+        this.favorite = !this.favorite
+      } catch (err) {
+        console.log(err);
+        alert("Error reading favorites.")
+      }
+      try {
+        const res = await axios.put(this.sw)
+      } catch (err) {
+        console.log(err);
+        alert("Error setting favorite song.")
+      }
     },
     async hideClick() {
+      this.sw = this.apiUrl + '/songs/hide/' + this.songList[this.currentPlayIndex].id
       try {
-        this.sw = this.apiUrl + '/songs/hide/' + this.songList[this.currentPlayIndex].id
         const res = await axios.put(this.sw)
         this.songList.splice(this.currentPlayIndex, 1)
         this.currentPlayIndex = this.currentPlayIndex - 1
@@ -361,7 +404,7 @@ export default defineComponent({
         this.playNext()
       } catch (err) {
         console.log(err);
-        alert("Error hiding song!")
+        alert("Error hiding song.")
       }
     },
     async getFavorites(genre, artist) {
@@ -369,13 +412,18 @@ export default defineComponent({
       const myBody = { genre: this.inpFavGen, artist: this.inpFavArt }
       const myBodyString = JSON.stringify(myBody)
 
-      const songsResponse = await axios.post<SongList[]>(
-        this.sw, myBodyString);
-      if (this.clearPl) {
-        this.songList = songsResponse.data
-      } else {
-        this.songList1 = songsResponse.data
-        this.songList = this.songList.concat(this.songList1)
+      try {
+        const songsResponse = await axios.post<SongList[]>(
+          this.sw, myBodyString);
+        if (this.clearPl) {
+          this.songList = songsResponse.data
+        } else {
+          this.songList1 = songsResponse.data
+          this.songList = this.songList.concat(this.songList1)
+        }
+      } catch (err) {
+        console.log(err);
+        alert("Error: getting favorites.")
       }
     },
     shufList() {
