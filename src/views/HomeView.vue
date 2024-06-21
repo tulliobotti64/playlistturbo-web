@@ -332,6 +332,7 @@ export default defineComponent({
             this.songList = this.songList.concat(this.songList1)
           }
           this.saveStorage()
+          this.inpVal = '';
         } catch (err) {
           console.log(err);
           alert("Error reading songs by albums.")
@@ -349,6 +350,7 @@ export default defineComponent({
           this.songList = this.songList.concat(this.songList1)
         }
         this.saveStorage()
+        this.inpVal = '';
       } catch (err) {
         console.log(err);
         alert("Error reading songs by artists.")
@@ -433,6 +435,7 @@ export default defineComponent({
         [array[i], array[j]] = [array[j], array[i]];
       }
       this.songList = array;
+      this.saveStorage()
     }
   },
   watch: {
