@@ -56,7 +56,7 @@ export default defineComponent({
   name: 'ImportView',
   data() {
     return {
-      apiUrl: 'http://192.168.32.136:8080/api',
+      apiUrl: 'http://192.168.32.136:6061/api',
       inputPath: '',
       inputRecursive: false,
       inputGenre: false,

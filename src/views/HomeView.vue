@@ -162,7 +162,7 @@ export default defineComponent({
   data() {
     return {
       myData: ref([]),
-      apiUrl: 'http://192.168.32.136:8080/api',
+      apiUrl: 'http://192.168.32.136:6061/api',
       songList: [] as SongList[],
       songList1: [] as SongList[],
       fetchingSongs: false,
@@ -208,6 +208,7 @@ export default defineComponent({
   methods: {
     removeList() {
       localStorage.removeItem('myList')
+      localStorage.removeItem('myIndex')
       this.songList = []
       this.listLen = 0
       this.image = ''
@@ -217,8 +218,7 @@ export default defineComponent({
       this.albumDate = 0
       this.currentAudioName = ''
       this.indexCnt = 0
-      const audio = document.getElementById("audioplayer") as HTMLAudioElement
-      audio.src = ''
+      location.reload()
     },
     saveStorage() {
       localStorage.setItem('myList', JSON.stringify(this.songList));
@@ -340,7 +340,7 @@ export default defineComponent({
       }
     },
     async fetchSongsByArtist(artist, option) {
-      this.sw = this.apiUrl + '/songs/songsbyartist/' + artist + "?option=" + option + "&limit=" + this.limitSongs
+      this.sw = this.apiUrl + '/songs/songsbyartist?artist=' + artist + "&option=" + option + "&limit=" + this.limitSongs
       try {
         const artistResponse = await axios.get<AlbumList[]>(this.sw);
         if (this.clearPl) {
@@ -359,6 +359,7 @@ export default defineComponent({
     registerAnswer() {
       if (this.favorCk) {
         this.getFavorites(this.inpFavGen, this.inpFavArt)
+        return
       }
 
       if (this.inpVal && this.search_by == "album") {
@@ -423,6 +424,10 @@ export default defineComponent({
           this.songList1 = songsResponse.data
           this.songList = this.songList.concat(this.songList1)
         }
+        this.inpFavArt = ''
+        this.inpFavGen = ''
+        this.favorCk = false
+        this.saveStorage()
       } catch (err) {
         console.log(err);
         alert("Error: getting favorites.")
