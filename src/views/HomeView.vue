@@ -143,6 +143,7 @@ interface SongList {
   songUrl: string,
   albumArtUri: string,
   genre: string,
+  favorite: string,
 }
 interface GenreList {
   name: string,
