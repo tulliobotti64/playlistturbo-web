@@ -56,7 +56,7 @@ export default defineComponent({
   name: 'ImportView',
   data() {
     return {
-      apiUrl: 'http://192.168.32.136:6061/api',
+      apiUrl: 'http://pltapi.local.tebecloud.com/api',
       inputPath: '',
       inputRecursive: false,
       inputGenre: false,
