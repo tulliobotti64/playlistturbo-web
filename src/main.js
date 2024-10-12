@@ -5,10 +5,21 @@ import App from './App.vue'
 import router from './router'
 import PrimeVue from "primevue/config";
 import Dropdown from 'primevue/dropdown';
+import auth from './services/auth';
 
-const app = createApp(App)
-app.use(PrimeVue)
-app.component("Dropdown", Dropdown);
-app.use(router)
+auth.init()
+.then(() => {
+  console.log("in the way to authenticate");
 
-app.mount('#app')
+    const app = createApp(App)
+    app.use(PrimeVue)
+    app.component("Dropdown", Dropdown);
+    app.use(router)
+    app.config.globalProperties.$keycloak = auth.keycloak;
+    
+    app.mount('#app')
+  })
+  .catch((error) => {
+    console.error("Erro na autenticação:", error);
+  });
+

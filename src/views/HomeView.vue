@@ -2,6 +2,7 @@
   <div class="wrapper">
     <div class="row">
       <div class="columntop-left">
+
         <img :src=image width="300" height="300">
         <div>
           Genre: {{ genre }} <p></p>
@@ -129,6 +130,14 @@
         </fieldset>
       </form>
     </div>
+    <div v-if="keycloak.authenticated">
+      <p>Olá, {{ userProfile.username }}! Para sair, clique no botão abaixo.</p>
+      <button @click="logout">Sair</button>
+    </div>
+    <div v-else>
+      <h1>Você não está autenticado!</h1>
+      <button @click="login">Entrar</button>
+    </div>
   </div>
 </template>
 
@@ -162,8 +171,11 @@ export default defineComponent({
   name: 'SongList',
   data() {
     return {
+      userProfile: {
+        username: '',
+      },
       myData: ref([]),
-      apiUrl: 'http://192.168.32.136:6061/api',
+      apiUrl: 'http://pltapi.local.tebecloud.com/api',
       songList: [] as SongList[],
       songList1: [] as SongList[],
       fetchingSongs: false,
@@ -442,6 +454,12 @@ export default defineComponent({
       }
       this.songList = array;
       this.saveStorage()
+    },
+    logout() {
+      this.$keycloak.logout();
+    },
+    login() {
+      this.$keycloak.login();
     }
   },
   watch: {
@@ -454,7 +472,19 @@ export default defineComponent({
     selectedAlbum: function (val, oldVal) {
       this.searchByAlbum = true;
     },
-  }
+  },
+  computed: {
+    keycloak() {
+      return this.$keycloak;
+    },
+  },
+  created() {
+    if (this.keycloak.authenticated) {
+      this.keycloak.loadUserProfile().then(profile => {
+        this.userProfile = profile;
+      });
+    }
+  },
 })
 </script>
 
