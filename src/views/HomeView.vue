@@ -287,9 +287,7 @@ export default defineComponent({
       this.sw = this.apiUrl + '/songs/' + searchWord + "?limit=" + this.limitSongs + "&gethide=false"
       try {
         const songsResponse = await axios.get<SongList[]>(this.sw);
-        if (songsResponse.data == null) {
-          alert("No result for this selection!")
-        } else {
+        if (songsResponse.data) {
           if (this.clearPl) {
             this.songList = songsResponse.data
           } else {
@@ -297,6 +295,8 @@ export default defineComponent({
             this.songList = this.songList.concat(this.songList1)
           }
           this.saveStorage()
+        } else {
+          alert("No result for this selection! " + searchWord)
         }
       } catch (err) {
         console.log(err);
@@ -307,7 +307,11 @@ export default defineComponent({
       this.sw = this.apiUrl + '/songs/genres'
       try {
         const genreResponse = await axios.get<GenreList[]>(this.sw);
-        this.genreList = genreResponse.data
+        if (genreResponse.data) {
+          this.genreList = genreResponse.data
+        } else {
+          alert('No genres found.');
+        }
       } catch (err) {
         console.log(err);
         alert("Error reading genres.")
@@ -317,7 +321,11 @@ export default defineComponent({
       this.sw = this.apiUrl + '/songs/artistbygenre/' + genre
       try {
         const artistResponse = await axios.get<ArtistList[]>(this.sw);
-        this.artistList = artistResponse.data
+        if (artistResponse.data) {
+          this.artistList = artistResponse.data
+        } else {
+          alert('No artist found with genre: ' + genre);
+        }
       } catch (err) {
         console.log(err);
         alert("Error reading artists.")
@@ -327,7 +335,11 @@ export default defineComponent({
       try {
         this.sw = this.apiUrl + '/songs/albumbyartist/' + artist
         const albumResponse = await axios.get<AlbumList[]>(this.sw);
-        this.albumList = albumResponse.data
+        if (albumResponse.data) {
+          this.albumList = albumResponse.data
+        } else {
+          alert('No albums found with artist: ' + artist);
+        }
       } catch (err) {
         console.log(err);
         alert("Error reading albums.")
@@ -338,14 +350,18 @@ export default defineComponent({
         try {
           this.sw = this.apiUrl + '/songs/songsbyalbum/' + album + "?limit=" + this.limitSongs
           const albumResponse = await axios.get<AlbumList[]>(this.sw);
-          if (this.clearPl) {
-            this.songList = albumResponse.data
+          if (albumResponse.data) {
+            if (this.clearPl) {
+              this.songList = albumResponse.data
+            } else {
+              this.songList1 = albumResponse.data
+              this.songList = this.songList.concat(this.songList1)
+            }
+            this.saveStorage()
+            this.inpVal = '';
           } else {
-            this.songList1 = albumResponse.data
-            this.songList = this.songList.concat(this.songList1)
+            alert('No albums found with artist: ' + album);
           }
-          this.saveStorage()
-          this.inpVal = '';
         } catch (err) {
           console.log(err);
           alert("Error reading songs by albums.")
@@ -356,14 +372,18 @@ export default defineComponent({
       this.sw = this.apiUrl + '/songs/songsbyartist?artist=' + artist + "&option=" + option + "&limit=" + this.limitSongs
       try {
         const artistResponse = await axios.get<AlbumList[]>(this.sw);
-        if (this.clearPl) {
-          this.songList = artistResponse.data
+        if (artistResponse.data) {
+          if (this.clearPl) {
+            this.songList = artistResponse.data
+          } else {
+            this.songList1 = artistResponse.data
+            this.songList = this.songList.concat(this.songList1)
+          }
+          this.saveStorage()
+          this.inpVal = '';
         } else {
-          this.songList1 = artistResponse.data
-          this.songList = this.songList.concat(this.songList1)
+          alert('No songs found with artist: ' + artist);
         }
-        this.saveStorage()
-        this.inpVal = '';
       } catch (err) {
         console.log(err);
         alert("Error reading songs by artists.")
