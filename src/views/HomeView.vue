@@ -209,7 +209,8 @@ export default defineComponent({
       indexCnt: 0,
       listLen: 0,
       search_by: 'artist',
-      search_op: 'random'
+      search_op: 'random',
+      songError: false
     }
   },
   beforeMount() {
@@ -246,16 +247,25 @@ export default defineComponent({
         this.loadSongInfo(this.currentPlayIndex)
       }
       const audio = document.getElementById("audioplayer") as HTMLAudioElement
-      audio.addEventListener("ended", this.playNext)
+      audio.addEventListener("ended", this.playNext.bind(this))
 
-      audio.onerror = function () {
-        alert("**Can't open audio ! Verify lan connection.")
+      audio.onerror = () => {
+        this.songError = true
+        this.playNext();
       }
 
     },
     playNext() {
-      this.currentPlayIndex = this.currentPlayIndex + 1;
-      this.skipTo(this.currentPlayIndex);
+      if (this.songError) {
+        this.songError = false
+        console.error("file audio with error: " + this.songList[this.currentPlayIndex].title)
+      }
+      if (this.currentPlayIndex + 1 < this.songList.length) {
+        this.currentPlayIndex += 1;
+        this.skipTo(this.currentPlayIndex);
+      } else {
+        alert("End of playlist reached!");
+      }
     },
 
     skipTo(index) {
